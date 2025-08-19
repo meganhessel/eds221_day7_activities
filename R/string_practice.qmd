@@ -1,0 +1,59 @@
+---
+title: "string_practice"
+format: html
+editor: visual
+---
+
+## Task 3 
+
+```{r}
+library(here)
+library(tidyverse)
+library(janitor)
+library(dplyr)
+library(datapasta)
+library(stringr)
+```
+
+```{r}
+alarm_report <- data.frame(
+  stringsAsFactors = FALSE,
+              date = c("2020-03-14", "2020-03-15", "2020-04-10", "2020-04-18"),
+          building = c("Engineering-North",
+                       "Bren Hall","Engineering-South","Engr-North"),
+     alarm_message = c("10:02am -- HVAC system down, facilities management alerted",
+                       "8:24am -- Elevator North out of service",
+                       "12:41am -- Fire alarm, UCSB fire responded and cleared",
+                       "9:58pm -- Campus point emergency siren, UCPD responded")
+)
+
+
+alarm_report <- alarm_report %>% 
+  mutate(building = str_replace(building, pattern = "Engr", replacement = "Engineering"))
+
+# separate 1 column into 2  
+k <- alarm_report %>% 
+  tidyr::separate(
+    col = building, 
+    into = c("building", "wing"), 
+    sep = "-")
+
+alarm_report %>% 
+  filter(!str_detect(alarm_message, pattern = "responded"))
+
+
+# seperate alarm message into two columns 
+r <- alarm_report %>% 
+  tidyr::separate(
+    col = alarm_message, 
+    into = c("time", "message"), 
+    sep = "--") 
+
+
+# change the date to ISO date 
+r <- r %>% 
+  mutate(date = lubridate::as_date(date))
+
+class(r$date)
+```
+

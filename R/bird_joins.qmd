@@ -1,0 +1,77 @@
+---
+title: "bird_joins"
+format: html
+editor: visual
+---
+
+## Task 1 
+
+```{r}
+library(here)
+library(tidyverse)
+library(janitor)
+library(dplyr)
+```
+
+```{r}
+#store data 
+bird_observations <- read_csv(here::here("data", "52_pp52_birds_1.csv"))
+
+sites <- read_csv(here("data", "52_pp52_sites_1.csv"))
+
+surveys <- read_csv(here("data", "52_pp52_surveys_1.csv"))
+
+taxalist <- read_csv(here("data", "52_pp52_taxalist_1.csv"))
+```
+
+```{r}
+# create a subset 
+
+bird_subset <- bird_observations %>% 
+  subset(species_id %in% c("BHCO", "RWBL")) %>% 
+  subset(site_id %in% c("LI-W", "NU-C"))
+
+# left join practice
+birds_left <- bird_subset %>% 
+  left_join(sites) %>% 
+  left_join(taxalist)
+
+#full join practice 
+birds_full <- full_join(x = bird_subset, y = sites)
+```
+
+## TASK 2 
+
+```{r}
+bird_observations <- bird_observations %>% 
+  rename(bird_obs_notes = notes)
+
+# joining all the data 
+birds_data <- bird_observations %>% 
+  full_join(taxalist) %>% 
+  full_join(sites) %>% 
+  full_join(surveys)
+
+# limit it to only 4 columns 
+birds_data <- birds_data %>% 
+  select(survey_date, common_name, park_name, bird_count)
+
+
+# added a new column with just the month 
+birds_data <- birds_data %>% 
+  mutate(mdy(birds_data$survey_date)) %>% 
+  mutate(survey_month = month(survey_date))
+
+#relocating the new column .after the survey_date column
+birds_data <- birds_data %>% 
+  relocate(survey_month, .after = survey_date)
+
+# total number of birds 
+bird_summary_bc <- birds_data %>% 
+  group_by(park_name, survey_month) %>% 
+  summarise(bird_count = n())
+
+# filter for parks 
+birds_data %>% 
+  filter(park_name == c("Lindo", "Orme", "Palomino", "Sonrisa"))
+```
